@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   CSS VARIABLES (THEME CORE)
+========================= */
+:root {
+  --background: 245 245 247;
+  --foreground: 23 23 23;
+
+  --card: 255 255 255;
+  --border: 0 0 0 / 0.08;
+}
+
+.dark {
+  --background: 11 15 26;
+  --foreground: 229 231 235;
+
+  --card: 255 255 255 / 0.06;
+  --border: 255 255 255 / 0.08;
+}
+
+/* =========================
+   GLOBAL STYLES
+========================= */
+/* 🌗 Smooth theme transition */
+html,
+body,
+* {
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    fill 0.4s ease,
+    stroke 0.4s ease;
+}
+
+
+/* ===== Glass base ===== */
+.glass {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 18px;
+  transition: all 0.35s ease;
+}
+
+/* ===== LIGHT MODE ===== */
+.light-selected {
+  background: linear-gradient(135deg, #34d399, #facc15);
+  box-shadow:
+    0 0 40px rgba(250, 204, 21, 0.55),
+    0 0 80px rgba(52, 211, 153, 0.45);
+  color: #0f172a;
+}
+
+.light-unselected {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08);
+  color: #111827;
+}
+
+/* ===== DARK MODE ===== */
+.dark-selected {
+  background: linear-gradient(135deg, #2dd4bf, #a855f7);
+  box-shadow:
+    0 0 45px rgba(168, 85, 247, 0.6),
+    0 0 80px rgba(45, 212, 191, 0.45);
+  color: #ffffff;
+}
+
+.dark-unselected {
+  background: rgba(15, 23, 42, 0.65);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+}
+
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
