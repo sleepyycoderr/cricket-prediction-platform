@@ -104,17 +104,14 @@ def predict_winner(payload: WinnerRequest):
         "rrr": rrr
     }])
 
-    # 🔥 MODEL SELECTION
     if payload.model == "catboost":
-        probs = catboost_winner.predict_proba(input_df)[0]
+        probs = catboost_winner.predict_proba(input_df)
+        probs = probs[0]   # CatBoost returns np.array
     else:
         model = winner_models[payload.model]
         probs = model.predict_proba(input_df)[0]
 
-    batting_prob = round(probs[1] * 100, 2)
-    bowling_prob = round(probs[0] * 100, 2)
-
     return WinnerResponse(
-        batting_team_win_prob=batting_prob,
-        bowling_team_win_prob=bowling_prob
+        batting_team_win_prob=round(float(probs[1] * 100), 2),
+        bowling_team_win_prob=round(float(probs[0] * 100), 2),
     )
