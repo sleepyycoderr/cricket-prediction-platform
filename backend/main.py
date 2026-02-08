@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 import pickle
 import os
+from catboost import CatBoostClassifier
+
 
 # ✅ FIRST: create app
 app = FastAPI(title="Cricket Predictor Backend")
@@ -30,10 +32,14 @@ score_models = {
 }
 
 winner_models = {
-    "catboost": pickle.load(open(os.path.join(MODEL_DIR, "catboost_win.pkl"), "rb")),
+    "catboost": None,  # loaded separately
     "xgboost": pickle.load(open(os.path.join(MODEL_DIR, "xgb_win.pkl"), "rb")),
     "lightgbm": pickle.load(open(os.path.join(MODEL_DIR, "lgbm_win.pkl"), "rb")),
 }
+
+catboost_winner = CatBoostClassifier()
+catboost_winner.load_model(os.path.join(MODEL_DIR, "catboost_win.cbm"))
+
 
 @app.get("/")
 def health_check():
@@ -75,14 +81,16 @@ from fastapi import HTTPException
 
 @app.post("/predict-winner", response_model=WinnerResponse)
 def predict_winner(payload: WinnerRequest):
-    model = winner_models[payload.model]
 
     balls_left = int(120 - (payload.overs_completed * 6))
     runs_left = payload.target - payload.current_score
     wickets_left = 10 - payload.wickets_fallen
 
+    if payload.overs_completed <= 0 or balls_left <= 0:
+        raise HTTPException(status_code=400, detail="Invalid match state")
+
     crr = payload.current_score / payload.overs_completed
-    rrr = (runs_left * 6) / balls_left if balls_left > 0 else 0.0
+    rrr = (runs_left * 6) / balls_left
 
     input_df = pd.DataFrame([{
         "batting_team": payload.batting_team,
@@ -96,16 +104,17 @@ def predict_winner(payload: WinnerRequest):
         "rrr": rrr
     }])
 
-    if hasattr(model, "predict_proba"):
-        probs = model.predict_proba(input_df)[0]
-        batting_prob = probs[1] * 100
-        bowling_prob = probs[0] * 100
+    # 🔥 MODEL SELECTION
+    if payload.model == "catboost":
+        probs = catboost_winner.predict_proba(input_df)[0]
     else:
-        batting_prob = model.predict(input_df)[0] * 100
-        batting_prob = max(0, min(100, batting_prob))
-        bowling_prob = 100 - batting_prob
+        model = winner_models[payload.model]
+        probs = model.predict_proba(input_df)[0]
+
+    batting_prob = round(probs[1] * 100, 2)
+    bowling_prob = round(probs[0] * 100, 2)
 
     return WinnerResponse(
-        batting_team_win_prob=round(batting_prob, 2),
-        bowling_team_win_prob=round(bowling_prob, 2)
+        batting_team_win_prob=batting_prob,
+        bowling_team_win_prob=bowling_prob
     )
