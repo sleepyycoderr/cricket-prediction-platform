@@ -240,7 +240,9 @@ const [model, setModel] = useState<ScoreModel>("catboost");
     hover:scale-[1.04]
 
     /* Hover glow boost */
-    hover:shadow-[0_0_90px_rgba(168,85,247,0.9)]
+    hover:shadow-[0_0_60px_rgba(34,197,94,0.7)]
+    dark:hover:shadow-[0_0_90px_rgba(168,85,247,0.9)]
+
 
     active:scale-[0.97]
     disabled:opacity-60
