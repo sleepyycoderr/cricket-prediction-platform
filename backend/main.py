@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 import pickle
 import os
-from catboost import CatBoostClassifier
+
 
 
 # ✅ FIRST: create app
@@ -31,14 +31,14 @@ score_models = {
     "xgboost": pickle.load(open(os.path.join(MODEL_DIR, "xgb_score.pkl"), "rb")),
 }
 
+
+
 winner_models = {
-    "catboost": None,  # loaded separately
+    "catboost": pickle.load(open(os.path.join(MODEL_DIR, "catboost_win.pkl"), "rb")),
     "xgboost": pickle.load(open(os.path.join(MODEL_DIR, "xgb_win.pkl"), "rb")),
     "lightgbm": pickle.load(open(os.path.join(MODEL_DIR, "lgbm_win.pkl"), "rb")),
 }
 
-catboost_winner = CatBoostClassifier()
-catboost_winner.load_model(os.path.join(MODEL_DIR, "catboost_win.cbm"))
 
 
 @app.get("/")
@@ -104,12 +104,9 @@ def predict_winner(payload: WinnerRequest):
         "rrr": rrr
     }])
 
-    if payload.model == "catboost":
-        probs = catboost_winner.predict_proba(input_df)
-        probs = probs[0]   # CatBoost returns np.array
-    else:
-        model = winner_models[payload.model]
-        probs = model.predict_proba(input_df)[0]
+    model = winner_models[payload.model]
+    probs = model.predict_proba(input_df)[0]
+
 
     return WinnerResponse(
         batting_team_win_prob=round(float(probs[1] * 100), 2),
